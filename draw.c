@@ -608,7 +608,7 @@ void draw_line(int x0, int y0, double z0,
     dx_east = dx_northeast = 1;
     dy_east = 0;
     d_east = A;
-    dz = (z1 - z0) / (x1 - x0);
+    dz = (z1 - z0) / abs(x1 - x0);
     if ( A > 0 ) { //octant 1
       d = A + B/2;
       dy_northeast = 1;
@@ -624,7 +624,7 @@ void draw_line(int x0, int y0, double z0,
     tall = 1;
     dx_east = 0;
     dx_northeast = 1;
-    dz = (z1 - z0) / (y1 - y0);
+    dz = (z1 - z0) / abs(y1 - y0);
     if ( A > 0 ) {     //octant 2
       d = A/2 + B;
       dy_east = dy_northeast = 1;
@@ -656,11 +656,13 @@ void draw_line(int x0, int y0, double z0,
       y+= dy_northeast;
       d+= d_northeast;
       x+= dx_northeast;
+      z+= dz;
     }
     else {
       x+= dx_east;
       y+= dy_east;
       d+= d_east;
+      z+= dz;
     }
     loop_start++;
   } //end drawing loop
