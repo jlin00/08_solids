@@ -50,15 +50,22 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zb ) {
   double yb = points->m[1][b];
   double ym = points->m[1][m];
   double yt = points->m[1][t];
-  
+  double zbot = points->m[2][b];
+  double zm = points->m[2][m];
+  double zt = points->m[2][t];
+
   //initializing values
-  double x0 = xb, x1 = xb, dx0 = 0, dx1 = 0, dx1_1 = 0;
+  double x0 = xb, x1 = xb, z0 = zbot, z1 = zbot;
+  double dx0 = 0, dx1 = 0, dx1_1 = 0, dz0 = 0, dz1 = 0, dz1_1 = 0;
   dx0 = (xt - xb) / (yt - yb);
+  dz0 = (zt - zbot) / (yt - yb);
   if (ym - yb != 0){
     dx1 = (xm - xb) / (ym - yb);
+    dz1 = (zm - zbot) / (ym - yb);
   }
   if (yt - ym != 0){
     dx1_1 = (xt - xm) / (yt - ym);
+    dz1_1 = (zt - zm) / (yt - ym);
   }
 
   //drawing scanlines
@@ -67,12 +74,16 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zb ) {
   for (y = (int)yb; y < (int)yt; y++){
     if (!switched && y >= (int)ym){
       dx1 = dx1_1;
+      dz1 = dz1_1;
       x1 = xm;
+      z1 = zm;
       switched = 1;
     }
-    draw_line(x0, y, 0, x1, y, 0, s, zb, c);
+    draw_line(x0, y, z0, x1, y, z1, s, zb, c);
     x0 += dx0;
     x1 += dx1;
+    z0 += dz0;
+    z1 += dz1;
   }
 }
 
@@ -144,12 +155,9 @@ void draw_polygons( struct matrix *polygons, screen s, zbuffer zb, color c ) {
 void add_box( struct matrix *polygons,
               double x, double y, double z,
               double width, double height, double depth ) {
-  double x0, y0, z0, x1, y1, z1;
-  x0 = x;
+  double x1, y1, z1;
   x1 = x+width;
-  y0 = y;
   y1 = y-height;
-  z0 = z;
   z1 = z-depth;
 
 
@@ -571,6 +579,7 @@ void draw_line(int x0, int y0, double z0,
   int x, y, d, A, B;
   int dy_east, dy_northeast, dx_east, dx_northeast, d_east, d_northeast;
   int loop_start, loop_end;
+  double z, dz;
 
   //swap points if going right -> left
   int xt, yt;
@@ -586,6 +595,7 @@ void draw_line(int x0, int y0, double z0,
 
   x = x0;
   y = y0;
+  z = z0;
   A = 2 * (y1 - y0);
   B = -2 * (x1 - x0);
   int wide = 0;
@@ -598,6 +608,7 @@ void draw_line(int x0, int y0, double z0,
     dx_east = dx_northeast = 1;
     dy_east = 0;
     d_east = A;
+    dz = (z1 - z0) / (x1 - x0);
     if ( A > 0 ) { //octant 1
       d = A + B/2;
       dy_northeast = 1;
@@ -613,6 +624,7 @@ void draw_line(int x0, int y0, double z0,
     tall = 1;
     dx_east = 0;
     dx_northeast = 1;
+    dz = (z1 - z0) / (y1 - y0);
     if ( A > 0 ) {     //octant 2
       d = A/2 + B;
       dy_east = dy_northeast = 1;
@@ -632,8 +644,10 @@ void draw_line(int x0, int y0, double z0,
   }
 
   while ( loop_start < loop_end ) {
-
-    plot( s, zb, c, x, y, 0);
+    if (z > zb[x][y]){
+      plot( s, zb, c, x, y, 0);
+      zb[x][y] = z;
+    }
     if ( (wide && ((A > 0 && d > 0) ||
                    (A < 0 && d < 0)))
          ||
@@ -650,5 +664,8 @@ void draw_line(int x0, int y0, double z0,
     }
     loop_start++;
   } //end drawing loop
-  plot( s, zb, c, x1, y1, 0 );
+  if (z > zb[x1][y1]){
+    plot( s, zb, c, x1, y1, 0 );
+    zb[x1][y1] = z;
+  }
 } //end draw_line
