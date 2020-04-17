@@ -583,14 +583,17 @@ void draw_line(int x0, int y0, double z0,
 
   //swap points if going right -> left
   int xt, yt;
+  double zt;
   if (x0 > x1) {
     xt = x0;
     yt = y0;
+    zt = z0;
     x0 = x1;
     y0 = y1;
     z0 = z1;
     x1 = xt;
     y1 = yt;
+    z1 = zt;
   }
 
   x = x0;
@@ -608,7 +611,7 @@ void draw_line(int x0, int y0, double z0,
     dx_east = dx_northeast = 1;
     dy_east = 0;
     d_east = A;
-    dz = (z1 - z0) / abs(x1 - x0);
+    dz = (z1 - z0) / (x1 - x0);
     if ( A > 0 ) { //octant 1
       d = A + B/2;
       dy_northeast = 1;
@@ -624,7 +627,7 @@ void draw_line(int x0, int y0, double z0,
     tall = 1;
     dx_east = 0;
     dx_northeast = 1;
-    dz = (z1 - z0) / abs(y1 - y0);
+    dz = (z1 - z0) / (y1 - y0);
     if ( A > 0 ) {     //octant 2
       d = A/2 + B;
       dy_east = dy_northeast = 1;
@@ -644,10 +647,7 @@ void draw_line(int x0, int y0, double z0,
   }
 
   while ( loop_start < loop_end ) {
-    if (z > zb[x][y]){
-      plot( s, zb, c, x, y, 0);
-      zb[x][y] = z;
-    }
+    plot( s, zb, c, x, y, z );
     if ( (wide && ((A > 0 && d > 0) ||
                    (A < 0 && d < 0)))
          ||
@@ -656,18 +656,14 @@ void draw_line(int x0, int y0, double z0,
       y+= dy_northeast;
       d+= d_northeast;
       x+= dx_northeast;
-      z+= dz;
     }
     else {
       x+= dx_east;
       y+= dy_east;
       d+= d_east;
-      z+= dz;
     }
+    z+= dz;
     loop_start++;
   } //end drawing loop
-  if (z > zb[x1][y1]){
-    plot( s, zb, c, x1, y1, 0 );
-    zb[x1][y1] = z;
-  }
+  plot( s, zb, c, x1, y1, z1 );
 } //end draw_line
