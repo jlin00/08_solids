@@ -56,17 +56,13 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zb ) {
 
   //initializing values
   double x0 = xb, x1 = xb, z0 = zbot, z1 = zbot;
-  double dx0 = 0, dx1 = 0, dx1_1 = 0, dz0 = 0, dz1 = 0, dz1_1 = 0;
+  double dx0, dx1, dx1_1, dz0, dz1, dz1_1;
   dx0 = (xt - xb) / (yt - yb);
   dz0 = (zt - zbot) / (yt - yb);
-  if (ym - yb != 0){
-    dx1 = (xm - xb) / (ym - yb);
-    dz1 = (zm - zbot) / (ym - yb);
-  }
-  if (yt - ym != 0){
-    dx1_1 = (xt - xm) / (yt - ym);
-    dz1_1 = (zt - zm) / (yt - ym);
-  }
+  dx1 = (xm - xb) / (ym - yb);
+  dz1 = (zm - zbot) / (ym - yb);
+  dx1_1 = (xt - xm) / (yt - ym);
+  dz1_1 = (zt - zm) / (yt - ym);
 
   //drawing scanlines
   int switched = 0;
